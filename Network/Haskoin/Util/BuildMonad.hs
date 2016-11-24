@@ -16,7 +16,7 @@ module Network.Haskoin.Util.BuildMonad
 , liftBuild
 ) where
 
-import Control.Monad (liftM)
+import Control.Monad (liftM, ap)
 import Control.Monad.Trans 
     ( MonadTrans
     , MonadIO
@@ -66,6 +66,10 @@ instance Functor Build where
     fmap f (Complete x) = Complete (f x)
     fmap f (Partial x)  = Partial (f x)
     fmap _ (Broken s)   = Broken s
+
+instance Applicative Build where
+    pure = return
+    (<*>) = ap
 
 instance Monad Build where
     return = Complete
@@ -118,6 +122,10 @@ mapBuildT f = BuildT . f . runBuildT
 
 instance Functor m => Functor (BuildT m) where
     fmap f = mapBuildT (fmap (fmap f))
+
+instance Monad m => Applicative (BuildT m) where
+    pure = return
+    (<*>) = ap
 
 instance Monad m => Monad (BuildT m) where
     return = lift . return
